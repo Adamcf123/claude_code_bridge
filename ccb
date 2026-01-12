@@ -212,7 +212,19 @@ def _build_export_path_cmd(bin_dir: Path) -> str:
     bin_s = str(bin_dir)
     if get_shell_type() == "powershell":
         safe = bin_s.replace("'", "''")
+        # Prefer a fully materialized PATH to avoid cases where the spawned shell inherits a stale
+        # PATH (e.g. tmux server started before Homebrew paths were available).
+        current = (os.environ.get("PATH") or "").replace("'", "''")
+        if current:
+            return f"$env:Path = '{safe};{current}'; "
         return f"$env:Path = '{safe};' + $env:Path; "
+
+    # Materialize PATH from the current CCB process instead of relying on the spawned shell's `$PATH`.
+    # This fixes macOS/Homebrew setups where `python3` exists in the interactive shell, but a spawned
+    # pane/session (tmux/Terminal.app) starts with a minimal PATH and `/usr/bin/env python3` fails.
+    current = os.environ.get("PATH") or ""
+    if current:
+        return f"export PATH={shlex.quote(bin_s)}{os.pathsep}{shlex.quote(current)}; "
     return f"export PATH={shlex.quote(bin_s)}{os.pathsep}$PATH; "
 
 
