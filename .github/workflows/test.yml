@@ -14,20 +14,40 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12"]
 
-  test-wsl:
-    name: WSL / py${{ matrix.python-version }}
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+
+      - name: Syntax check
+        run: python -m compileall -q lib bin ccb
+
+      - name: Run tests
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            pytest test/ -v --tb=short -k "not tmux"
+          else
+            pytest test/ -v --tb=short
+          fi
+        shell: bash
+
+      - name: Debug on failure (Windows)
+        if: failure() && runner.os == 'Windows'
+        run: |
+          python --version
+          python -c "import sys; print('Platform:', sys.platform); print('Executable:', sys.executable)"
+          dir lib
+          type lib\terminal.py | findstr /N "import"
+        shell: cmd
         with:
           python-version: ${{ matrix.python-version }}
 
