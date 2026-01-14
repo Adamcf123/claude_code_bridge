@@ -2191,11 +2191,27 @@ def _format_version_info(info: dict) -> str:
 
 
 def _get_remote_version_info() -> dict | None:
-    """Get latest version info from GitHub API"""
+    """Get latest version info from GitHub API (uses local git remote origin)"""
     import urllib.request
     import ssl
+    import re
 
-    api_url = "https://api.github.com/repos/bfly123/claude_code_bridge/commits/main"
+    # Detect repo from local git remote origin
+    install_dir = Path(__file__).resolve().parent
+    repo = "bfly123/claude_code_bridge"  # fallback to upstream
+    if shutil.which("git") and (install_dir / ".git").exists():
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            cwd=str(install_dir), capture_output=True, text=True, timeout=5
+        )
+        if result.returncode == 0:
+            url = result.stdout.strip()
+            # Parse github.com/owner/repo from URL
+            m = re.search(r"github\.com[:/]([^/]+/[^/]+?)(?:\.git)?$", url)
+            if m:
+                repo = m.group(1)
+
+    api_url = f"https://api.github.com/repos/{repo}/commits/main"
     try:
         ctx = ssl.create_default_context()
         req = urllib.request.Request(api_url, headers={"User-Agent": "ccb"})
