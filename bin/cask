@@ -45,6 +45,25 @@ You are the SUPERVISOR, NOT the executor.
 
 """
 
+FOLLOWUP_PROMPT = """
+---
+## Claude Code 后续操作提示
+
+收到 Codex 回复后，请执行：
+
+1. **独立阅读分析** Codex 回复，判断：
+   - 是否引入非架构性改动
+   - 是否有遗漏或过度设计
+
+2. **补充任务上下文**：
+   - 目标、完成内容、变更点
+   - 解释重要概念（含义 + 目的 + 价值）
+
+3. 如有问题，立即返回给 Codex/OpenCode 修复
+
+4. 自然后续步骤（git push、bd close、pytest 等）直接执行，不询问用户
+"""
+
 
 def _get_executor_from_roles() -> Optional[str]:
     """Read executor from roles config (priority: session > project > global)."""
@@ -159,11 +178,12 @@ def main(argv: list[str]) -> int:
             daemon_result = try_daemon_request(CASK_CLIENT_SPEC, work_dir, message, timeout, quiet, state_file)
         if daemon_result is not None:
             reply, exit_code = daemon_result
+            full_output = reply + FOLLOWUP_PROMPT
             if output_path:
-                atomic_write_text(output_path, reply + "\n")
+                atomic_write_text(output_path, full_output + "\n")
                 return exit_code
-            sys.stdout.write(reply)
-            if not reply.endswith("\n"):
+            sys.stdout.write(full_output)
+            if not full_output.endswith("\n"):
                 sys.stdout.write("\n")
             return exit_code
 
