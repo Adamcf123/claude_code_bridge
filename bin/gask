@@ -129,7 +129,7 @@ def main(argv: list[str]) -> int:
         work_dir, _ = resolve_work_dir(
             GASK_CLIENT_SPEC,
             cli_session_file=session_file,
-            env_session_file=os.environ.get("CCB_SESSION_FILE"),
+            env_session_file=os.environ.get(GASK_CLIENT_SPEC.session_file_env),
         )
 
         # Prefer daemon mode: daemon performs per-session serialization and should accept concurrent submissions.

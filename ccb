@@ -1830,6 +1830,7 @@ class AILauncher:
             env["CODEX_INPUT_FIFO"] = str(runtime / "input.fifo")
             env["CODEX_OUTPUT_FIFO"] = str(runtime / "output.fifo")
             env["CODEX_TERMINAL"] = self.terminal_type
+            env["CCB_CASK_SESSION_FILE"] = str(self._project_session_file(".codex-session"))
             if self.terminal_type == "wezterm":
                 env["CODEX_WEZTERM_PANE"] = self.wezterm_panes.get("codex", "")
             else:
@@ -1840,6 +1841,7 @@ class AILauncher:
             env["GEMINI_SESSION_ID"] = self.session_id
             env["GEMINI_RUNTIME_DIR"] = str(runtime)
             env["GEMINI_TERMINAL"] = self.terminal_type
+            env["CCB_GASK_SESSION_FILE"] = str(self._project_session_file(".gemini-session"))
             if self.terminal_type == "wezterm":
                 env["GEMINI_WEZTERM_PANE"] = self.wezterm_panes.get("gemini", "")
             else:
@@ -1850,6 +1852,7 @@ class AILauncher:
             env["OPENCODE_SESSION_ID"] = self.session_id
             env["OPENCODE_RUNTIME_DIR"] = str(runtime)
             env["OPENCODE_TERMINAL"] = self.terminal_type
+            env["CCB_OASK_SESSION_FILE"] = str(self._project_session_file(".opencode-session"))
             if self.terminal_type == "wezterm":
                 env["OPENCODE_WEZTERM_PANE"] = self.wezterm_panes.get("opencode", "")
             else:

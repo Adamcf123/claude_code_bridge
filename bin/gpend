@@ -91,7 +91,7 @@ def main(argv: list[str]) -> int:
         work_dir, _ = resolve_work_dir(
             GASK_CLIENT_SPEC,
             cli_session_file=args.session_file,
-            env_session_file=os.environ.get("CCB_SESSION_FILE"),
+            env_session_file=os.environ.get(GASK_CLIENT_SPEC.session_file_env),
         )
 
         # Try session-specific path first

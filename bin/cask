@@ -148,7 +148,7 @@ def main(argv: list[str]) -> int:
         work_dir, _ = resolve_work_dir(
             CASK_CLIENT_SPEC,
             cli_session_file=session_file,
-            env_session_file=os.environ.get("CCB_SESSION_FILE"),
+            env_session_file=os.environ.get(CASK_CLIENT_SPEC.session_file_env),
         )
 
         # Daemon-only: remove client-side serial lock mode.

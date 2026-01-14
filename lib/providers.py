@@ -20,6 +20,7 @@ class ProviderClientSpec:
     autostart_env_primary: str
     autostart_env_legacy: str
     state_file_env: str
+    session_file_env: str
     session_filename: str
     daemon_bin_name: str
     daemon_module: str
@@ -61,6 +62,7 @@ CASK_CLIENT_SPEC = ProviderClientSpec(
     autostart_env_primary="CCB_CASKD_AUTOSTART",
     autostart_env_legacy="CCB_AUTO_CASKD",
     state_file_env="CCB_CASKD_STATE_FILE",
+    session_file_env="CCB_CASK_SESSION_FILE",
     session_filename=".codex-session",
     daemon_bin_name="caskd",
     daemon_module="caskd_daemon",
@@ -73,6 +75,7 @@ GASK_CLIENT_SPEC = ProviderClientSpec(
     autostart_env_primary="CCB_GASKD_AUTOSTART",
     autostart_env_legacy="CCB_AUTO_GASKD",
     state_file_env="CCB_GASKD_STATE_FILE",
+    session_file_env="CCB_GASK_SESSION_FILE",
     session_filename=".gemini-session",
     daemon_bin_name="gaskd",
     daemon_module="gaskd_daemon",
@@ -85,6 +88,7 @@ OASK_CLIENT_SPEC = ProviderClientSpec(
     autostart_env_primary="CCB_OASKD_AUTOSTART",
     autostart_env_legacy="CCB_AUTO_OASKD",
     state_file_env="CCB_OASKD_STATE_FILE",
+    session_file_env="CCB_OASK_SESSION_FILE",
     session_filename=".opencode-session",
     daemon_bin_name="oaskd",
     daemon_module="oaskd_daemon",

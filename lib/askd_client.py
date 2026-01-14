@@ -27,7 +27,7 @@ def resolve_work_dir(
 
     Priority:
       1) cli_session_file (--session-file)
-      2) env_session_file (CCB_SESSION_FILE)
+      2) env_session_file (provider-specific session file env)
       3) default_cwd / Path.cwd()
 
     Returns:
@@ -35,6 +35,11 @@ def resolve_work_dir(
     """
     raw = (cli_session_file or "").strip() or (env_session_file or "").strip()
     if not raw:
+        if os.environ.get("CLAUDECODE") == "1":
+            raise ValueError(
+                "Session file not provided in Claude Code environment. "
+                "This indicates ccb was not started correctly or env vars are missing."
+            )
         return (default_cwd or Path.cwd()), None
 
     expanded = os.path.expanduser(raw)

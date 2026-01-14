@@ -396,14 +396,14 @@ Once started, collaborate naturally. Claude will detect when to delegate tasks.
 
 ### v4.0.5
 - **Gemini Reliability**: Retry reading Gemini session JSON to avoid transient partial-write failures
-- **Claude Code Reliability**: `gpend` supports `--session-file` / `CCB_SESSION_FILE` to bypass wrong `cwd`
+- **Claude Code Reliability**: `gpend` supports `--session-file` / `CCB_GASK_SESSION_FILE` to bypass wrong `cwd`
 
 ### v4.0.4
 - **Fix**: Auto-repair duplicate `[projects.\"...\"]` entries in `~/.codex/config.toml` before starting Codex
 
 ### v4.0.3
 - **Project Cleanliness**: Store session files under `.ccb_config/` (fallback to legacy root dotfiles)
-- **Claude Code Reliability**: `cask/gask/oask` support `--session-file` / `CCB_SESSION_FILE` to bypass wrong `cwd`
+- **Claude Code Reliability**: `cask/gask/oask` support `--session-file` / `CCB_CASK_SESSION_FILE` / `CCB_GASK_SESSION_FILE` / `CCB_OASK_SESSION_FILE` to bypass wrong `cwd`
 - **Codex Config Safety**: Write auto-approval settings into a CCB-marked block to avoid config conflicts
 
 ### v4.0.2

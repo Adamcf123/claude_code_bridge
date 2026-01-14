@@ -188,6 +188,7 @@ def test_client_try_daemon_request(tmp_path: Path, monkeypatch: pytest.MonkeyPat
         autostart_env_primary="CCB_ITEST_AUTOSTART",
         autostart_env_legacy="CCB_AUTO_ITEST",
         state_file_env="CCB_ITEST_STATE_FILE",
+        session_file_env="CCB_ITEST_SESSION_FILE",
         session_filename=".itest-session",
         daemon_bin_name="itestd",
         daemon_module=module_name,
@@ -212,4 +213,3 @@ def test_client_try_daemon_request(tmp_path: Path, monkeypatch: pytest.MonkeyPat
 
     assert askd_rpc.shutdown_daemon(spec.protocol_prefix, timeout_s=0.5, state_file=state_file) is True
     thread.join(timeout=3.0)
-
