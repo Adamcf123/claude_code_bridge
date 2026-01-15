@@ -75,18 +75,34 @@ tmux set-option -t "$session" @ccb_active "1" >/dev/null 2>&1 || true
 tmux set-option -t "$session" status-position bottom >/dev/null 2>&1 || true
 tmux set-option -t "$session" status-interval 5 >/dev/null 2>&1 || true
 tmux set-option -t "$session" status-style 'bg=#1e1e2e fg=#cdd6f4' >/dev/null 2>&1 || true
+tmux set-option -t "$session" status 2 >/dev/null 2>&1 || true
 
-tmux set-option -t "$session" status-left-length 50 >/dev/null 2>&1 || true
+tmux set-option -t "$session" status-left-length 80 >/dev/null 2>&1 || true
 tmux set-option -t "$session" status-right-length 120 >/dev/null 2>&1 || true
 
-tmux set-option -t "$session" status-left '#[fg=#1e1e2e,bg=#f5c2e7,bold]  #S #[fg=#f5c2e7,bg=#cba6f7]#[fg=#1e1e2e,bg=#cba6f7] CCB #[fg=#cba6f7,bg=#1e1e2e]' >/dev/null 2>&1 || true
+# Second status line: quick hints
+status_format_1="#[align=centre,bg=#1e1e2e,fg=#6c7086]Copy: MouseDrag  Paste: Shift-Ctrl-v  Focus: Ctrl-b o"
+tmux set-option -t "$session" 'status-format[1]' "$status_format_1" >/dev/null 2>&1 || true
 
-# Prefer the stable pane user option `@ccb_agent` (set by ccb) over volatile `pane_title`.
-status_right="#{?#{==:#{@ccb_agent},Codex},#[fg=#1e1e2e]#[bg=#ff9e64]#[bold] Codex #[default],#{?#{==:#{@ccb_agent},Gemini},#[fg=#1e1e2e]#[bg=#a6e3a1]#[bold] Gemini #[default],#{?#{==:#{@ccb_agent},OpenCode},#[fg=#1e1e2e]#[bg=#ff79c6]#[bold] OpenCode #[default],#{?#{==:#{@ccb_agent},Claude},#[fg=#1e1e2e]#[bg=#f38ba8]#[bold] Claude #[default],#[fg=#6c7086] #{pane_title} #[default]}}}} #[fg=#1e1e2e,bg=#89b4fa,bold] AI #(${status_script} compact) #[default] #[fg=#1e1e2e,bg=#a6e3a1,bold] %H:%M #[default] #[fg=#1e1e2e,bg=#fab387,bold] %m/%d #[default]"
+# First status line: left + center(folder) + right
+status_format_0="#[align=left bg=#1e1e2e]#{T:status-left}#[align=centre fg=#6c7086]#{b:pane_current_path}#[align=right]#{T:status-right}"
+tmux set-option -t "$session" 'status-format[0]' "$status_format_0" >/dev/null 2>&1 || true
+
+# Mode-aware status-left: [MODE] > [git-branch] > [CCA]
+accent='#{?client_prefix,#f38ba8,#{?pane_in_mode,#fab387,#f5c2e7}}'
+label='#{?client_prefix,KEY,#{?pane_in_mode,COPY,INPUT}}'
+git_info='#(cd "#{pane_current_path}" 2>/dev/null && { b=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); [ -n "$b" ] && { d=$(git status --porcelain 2>/dev/null | head -1); [ -n "$d" ] && echo "$b*" || echo "$b"; } || echo -; })'
+cca_status='#([ -f /tmp/cca.pid ] && kill -0 $(cat /tmp/cca.pid 2>/dev/null) 2>/dev/null && echo "ON" || echo "OFF")'
+tmux set-option -t "$session" status-left "#[fg=#1e1e2e,bg=${accent},bold] ${label} #[fg=${accent},bg=#cba6f7]#[fg=#1e1e2e,bg=#cba6f7] ${git_info} #[fg=#cba6f7,bg=#89b4fa]#[fg=#1e1e2e,bg=#89b4fa] CCA:${cca_status} #[fg=#89b4fa,bg=#1e1e2e]" >/dev/null 2>&1 || true
+
+# Right: < Focus:AI < CCB:ver < ○○○○ < HH:MM
+ccb_version='#(ccb --version 2>/dev/null | grep -oE "v[0-9]+\.[0-9]+\.[0-9]+" | head -1 || echo "?")'
+focus_agent='#{?#{@ccb_agent},#{@ccb_agent},-}'
+status_right="#[fg=#f38ba8,bg=#1e1e2e]#[fg=#1e1e2e,bg=#f38ba8,bold] ${focus_agent} #[fg=#cba6f7,bg=#f38ba8]#[fg=#1e1e2e,bg=#cba6f7,bold] CCB:${ccb_version} #[fg=#89b4fa,bg=#cba6f7]#[fg=#cdd6f4,bg=#89b4fa] #(${status_script} modern) #[fg=#fab387,bg=#89b4fa]#[fg=#1e1e2e,bg=#fab387,bold] %m/%d %a %H:%M #[default]"
 tmux set-option -t "$session" status-right "$status_right" >/dev/null 2>&1 || true
 
-tmux set-option -t "$session" window-status-format '#[fg=#6c7086] #I:#W ' >/dev/null 2>&1 || true
-tmux set-option -t "$session" window-status-current-format '#[fg=#1e1e2e,bg=#89b4fa,bold] #I:#W #[fg=#89b4fa,bg=#1e1e2e]' >/dev/null 2>&1 || true
+tmux set-option -t "$session" window-status-format '' >/dev/null 2>&1 || true
+tmux set-option -t "$session" window-status-current-format '' >/dev/null 2>&1 || true
 tmux set-option -t "$session" window-status-separator '' >/dev/null 2>&1 || true
 
 # Pane titles and borders (window options)

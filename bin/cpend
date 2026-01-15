@@ -128,7 +128,7 @@ def main(argv: list[str]) -> int:
             _debug(f"Using codex_session_path from .codex-session: {log_path}")
 
         session_filter = _derive_session_filter(log_path, registry_record, session_id)
-        reader = CodexLogReader(log_path=log_path, session_id_filter=session_filter)
+        reader = CodexLogReader(log_path=log_path, session_id_filter=session_filter, work_dir=work_dir)
 
         if n > 1:
             conversations = reader.latest_conversations(n)

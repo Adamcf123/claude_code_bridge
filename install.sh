@@ -235,6 +235,7 @@ detect_platform() {
   esac
 }
 
+
 is_wsl() {
   [[ -f /proc/version ]] && grep -qi microsoft /proc/version 2>/dev/null
 }
@@ -720,7 +721,6 @@ install_claude_md_config() {
   # Use temp file to avoid Bash 3.2 heredoc parsing bug with single quotes
   local ccb_tmpfile=""
   ccb_tmpfile="$(mktemp)" || { echo "Failed to create temp file"; return 1; }
-  trap 'rm -f "${ccb_tmpfile:-}"' RETURN
   cat > "$ccb_tmpfile" << 'AI_RULES'
 <!-- CCB_CONFIG_START -->
 ## Collaboration Rules (Codex / Gemini / OpenCode)
@@ -759,6 +759,8 @@ Examples:
 AI_RULES
   local ccb_content
   ccb_content="$(cat "$ccb_tmpfile")"
+  rm -f "$ccb_tmpfile" >/dev/null 2>&1 || true
+  ccb_tmpfile=""
 
   if [[ -f "$claude_md" ]]; then
     if grep -q "$CCB_START_MARKER" "$claude_md" 2>/dev/null; then
@@ -987,7 +989,6 @@ sys.stdout.write(content.replace('@CCB_BIN_DIR@', bin_dir))
   echo "Updated tmux configuration: $tmux_conf"
   echo "   - CCB tmux integration (copy mode, mouse, pane management)"
   echo "   - CCB theme is enabled only while CCB is running (auto restore on exit)"
-  echo "   - Manual theme toggle: prefix + C (on), prefix + V (off)"
   echo "   - Vi-style pane management with h/j/k/l"
   echo "   - Mouse support and better copy mode"
   echo "   - Run 'tmux source ~/.tmux.conf' to apply (or restart tmux)"
