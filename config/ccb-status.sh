@@ -153,6 +153,37 @@ main() {
             echo "${output}${icons}"
             ;;
 
+        modern)
+            # Modern status: C X G O with dots (● = online, ○ = offline)
+            local output=""
+
+            # C - Claude (no daemon, always dim)
+            output+="${C_DIM}○${C_RESET} "
+
+            # X - Codex (cask daemon)
+            if [[ $(check_daemon "cask") == "on" ]]; then
+                output+="${C_ORANGE}●${C_RESET} "
+            else
+                output+="${C_DIM}○${C_RESET} "
+            fi
+
+            # G - Gemini (gask daemon)
+            if [[ $(check_daemon "gask") == "on" ]]; then
+                output+="${C_TEAL}●${C_RESET} "
+            else
+                output+="${C_DIM}○${C_RESET} "
+            fi
+
+            # O - OpenCode (oask daemon)
+            if [[ $(check_daemon "oask") == "on" ]]; then
+                output+="${C_PURPLE}●${C_RESET}"
+            else
+                output+="${C_DIM}○${C_RESET}"
+            fi
+
+            echo "${output}"
+            ;;
+
         pane)
             # Show pane-specific info (for status-left)
             local pane_title="${TMUX_PANE_TITLE:-}"

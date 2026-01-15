@@ -71,7 +71,7 @@ def main(argv: list[str]) -> int:
         )
 
         project_id = _load_project_id(work_dir, explicit_session_file)
-        reader = OpenCodeLogReader(project_id=project_id)
+        reader = OpenCodeLogReader(project_id=project_id, work_dir=work_dir)
         message = reader.latest_message()
         if not message:
             print(t("no_reply_available", provider="OpenCode"), file=sys.stderr)

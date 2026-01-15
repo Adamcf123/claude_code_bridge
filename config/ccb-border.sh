@@ -19,9 +19,11 @@ key="$(echo "${agent:-}" | tr -d '\n')"
 set_border() {
   local style="$1"
   if [[ -n "$pane_id" ]]; then
-    tmux set-window-option -t "$pane_id" pane-active-border-style "$style"
+    # Use set-option -p for pane-level option with pane_id target
+    tmux set-option -p -t "$pane_id" pane-active-border-style "$style" 2>/dev/null || \
+    tmux set-window-option pane-active-border-style "$style" 2>/dev/null || true
   else
-    tmux set-window-option pane-active-border-style "$style"
+    tmux set-window-option pane-active-border-style "$style" 2>/dev/null || true
   fi
 }
 

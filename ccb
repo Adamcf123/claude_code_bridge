@@ -1102,19 +1102,8 @@ class AILauncher:
         Always scans session logs to find the latest session for current cwd,
         then updates local .codex-session file.
         """
-        # Fast-path: use project session file if available (supports `.ccb_config/` + legacy dotfiles).
-        try:
-            existing_session = find_project_session_file(Path.cwd(), ".codex-session")
-        except Exception:
-            existing_session = None
-        if existing_session:
-            data = self._read_json_file(existing_session)
-            sid = data.get("codex_session_id")
-            recorded_norm = _extract_session_work_dir_norm(data)
-            root_norm = _normalize_path_for_match(str(self.project_root))
-            if isinstance(sid, str) and sid.strip() and root_norm and _normpath_within(recorded_norm, root_norm):
-                return sid.strip(), True
-
+        # Always scan logs to find the latest session - don't use cached session file
+        # as it may be stale (user may have started new sessions since last run).
         project_session = self._project_session_file(".codex-session")
 
         # Always scan Codex session logs for the latest session bound to this cwd.
