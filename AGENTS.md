@@ -12,7 +12,7 @@
   <WORKFLOW>
     <BEFORE_WORK>
       <CHECKLIST>
-        <ITEM>命令入口：优先查 `重要命令.txt`；以及其他各种编程中常见的记录使用方法、guide的文档。</ITEM>
+        <ITEM>命令入口：优先查项目根目录的 `重要命令.txt`、`scripts/`、`docs/` 目录。</ITEM>
       </CHECKLIST>
     </BEFORE_WORK>
 
