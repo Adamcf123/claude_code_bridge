@@ -39,7 +39,7 @@ backend_env = get_backend_env()
 if backend_env and not os.environ.get("CCB_BACKEND_ENV"):
     os.environ["CCB_BACKEND_ENV"] = backend_env
 
-VERSION = "4.1.2"
+VERSION = "4.1.3"
 GIT_COMMIT = ""
 GIT_DATE = ""
 
@@ -1077,11 +1077,35 @@ class AILauncher:
         desired = [
             'trust_level = "trusted"',
             'approval_policy = "never"',
-            'sandbox_mode = "full-auto"',
+            'sandbox_mode = "danger-full-access"',
         ]
 
         try:
             content = codex_config.read_text(encoding="utf-8")
+
+            def _migrate_legacy_full_auto(text: str) -> tuple[str, bool]:
+                """
+                Older CCB versions wrote `sandbox_mode = "full-auto"` into `~/.codex/config.toml`.
+                Codex rejects this value (valid variants: read-only/workspace-write/danger-full-access),
+                so we migrate it to `danger-full-access` to match CCB's `-a/--auto` intent.
+                """
+                lines = (text or "").splitlines(keepends=True)
+                if not lines:
+                    return text, False
+                out: list[str] = []
+                changed = False
+                for line in lines:
+                    stripped = line.strip()
+                    if "sandbox_mode" in stripped and ("\"full-auto\"" in stripped or "'full-auto'" in stripped):
+                        out.append(
+                            line.replace('"full-auto"', '"danger-full-access"').replace("'full-auto'", '"danger-full-access"')
+                        )
+                        changed = True
+                        continue
+                    out.append(line)
+                return "".join(out), changed
+
+            content, migrated = _migrate_legacy_full_auto(content)
 
             def _dedupe_duplicate_project_tables(text: str) -> tuple[str, bool]:
                 """
@@ -1225,6 +1249,7 @@ class AILauncher:
             # De-dupe again after edits, in case older configs already had duplicates.
             content, deduped_after = _dedupe_duplicate_project_tables(content)
             deduped = deduped or deduped_after
+            deduped = deduped or migrated
 
             if changed_any or deduped:
                 codex_config.write_text(content, encoding="utf-8")
@@ -1243,7 +1268,7 @@ class AILauncher:
             cmd_parts.extend([
                 "-c", 'trust_level="trusted"',
                 "-c", 'approval_policy="never"',
-                "-c", 'sandbox_mode="full-auto"',
+                "-c", 'sandbox_mode="danger-full-access"',
             ])
         cmd = " ".join(cmd_parts)
         codex_resumed = False
@@ -1620,6 +1645,15 @@ class AILauncher:
                     parent_pane = next(iter(self.tmux_panes.values()))
                 except StopIteration:
                     parent_pane = None
+
+        # If the preferred parent pane disappeared (e.g. a fast-exiting backend), fall back
+        # to a live pane instead of crashing.
+        try:
+            if parent_pane and str(parent_pane).startswith("%") and not backend.pane_exists(str(parent_pane)):
+                # Prefer the pane where this command runs.
+                parent_pane = backend.get_current_pane_id()
+        except Exception:
+            parent_pane = None
 
         pane_id = backend.create_pane("", str(Path.cwd()), direction=direction, percent=50, parent_pane=parent_pane)
         backend.respawn_pane(pane_id, cmd=start_cmd, cwd=str(Path.cwd()), remain_on_exit=True)
