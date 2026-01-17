@@ -89,6 +89,15 @@
 	  2. 判断相似性：问题描述、根因、受影响范围是否一致
 	  3. 相似 → bd update <id> 追加信息；不相似 → bd create 新建
 	</PROCEDURE>
+
+	<RULE>分阶段方案结构化（遵循先查后建）</RULE>
+	<PROCEDURE>
+	  当方案确认分阶段实施时：
+	  1. 为整体方案创建 epic：bd create -t epic --title="..."
+	  2. 为每阶段创建 issue，标题格式：「阶段 N: 描述」
+	  3. 所有阶段 issue 关联 epic：bd dep add <阶段-issue> <epic>
+	  4. 阶段间依赖：bd dep add <后续阶段> <前置阶段>
+	</PROCEDURE>
   </Beads-BD-bd-Landing the Plane (Session Completion)-纠正>
 
 </AGENTS>
