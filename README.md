@@ -1,6 +1,6 @@
 <div align="center">
 
-# Claude Code Bridge (ccb) v4.1.0
+# Claude Code Bridge (ccb) v4.1.2
 
 **Silky Smooth Claude & Codex & Gemini Collaboration via Split-Pane Terminal**
 
@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Every_Model_Controllable-CF1322?style=for-the-badge" alt="Every Model Controllable">
 </p>
 
-[![Version](https://img.shields.io/badge/version-4.1.0-orange.svg)]()
+[![Version](https://img.shields.io/badge/version-4.1.2-orange.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![CI](https://github.com/bfly123/claude_code_bridge/actions/workflows/test.yml/badge.svg)](https://github.com/bfly123/claude_code_bridge/actions/workflows/test.yml)
@@ -192,6 +192,9 @@ cd claude_code_bridge
 powershell -ExecutionPolicy Bypass -File .\install.ps1 install
 ```
 
+- The installer prefers `pwsh.exe` (PowerShell 7+) when available, otherwise `powershell.exe`.
+- If a WezTerm config exists, the installer will try to set `config.default_prog` to PowerShell (adds a `-- CCB_WEZTERM_*` block and will prompt before overriding an existing `default_prog`).
+
 </details>
 
 ### Run
@@ -225,6 +228,10 @@ ccb update              # Update ccb to the latest version
 ## 🪟 Windows Installation Guide (WSL vs Native)
 
 > **Key Point:** `ccb/cask/cping/cpend` must run in the **same environment** as `codex/gemini`. The most common issue is environment mismatch causing `cping` to fail.
+
+Note: The installers also install OS-specific `SKILL.md` variants for Claude/Codex skills:
+- Linux/macOS/WSL: bash heredoc templates (`SKILL.md.bash`)
+- Native Windows: PowerShell here-string templates (`SKILL.md.powershell`)
 
 ### 1) Prerequisites: Install Native WezTerm
 
@@ -393,6 +400,16 @@ Once started, collaborate naturally. Claude will detect when to delegate tasks.
 
 <details>
 <summary><b>Version History</b></summary>
+
+### v4.1.2
+- **Performance**: Added caching for tmux status bar (git branch & ccb status) to reduce system load
+- **Strict Tmux**: Explicitly require `tmux` for auto-launch; removed error-prone auto-attach logic
+- **CLI**: Added `--print-version` flag for fast version checks
+
+### v4.1.1
+- **CLI Fix**: Improved flag preservation (e.g., `-a`) when relaunching `ccb up` in tmux
+- **UX**: Better error messages when running in non-interactive sessions
+- **Install**: Force update skills to ensure latest versions are applied
 
 ### v4.1.0
 - **Async Guardrail**: `cask/gask/oask` print a post-submit guardrail reminder for Claude

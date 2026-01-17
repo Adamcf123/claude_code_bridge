@@ -593,13 +593,27 @@ install_claude_skills() {
   fi
 
   mkdir -p "$skills_dst"
+  echo "Installing Claude skills (bash SKILL.md templates)..."
   for skill_dir in "$skills_src"/*/; do
     [[ -d "$skill_dir" ]] || continue
     local skill_name
     skill_name=$(basename "$skill_dir")
-    rm -rf "$skills_dst/$skill_name"
-    cp -r "$skill_dir" "$skills_dst/$skill_name"
-    echo "  Installed skill: $skill_name"
+    [[ "$skill_name" == "docs" ]] && continue
+
+    local src_skill_md=""
+    if [[ -f "$skill_dir/SKILL.md.bash" ]]; then
+      src_skill_md="$skill_dir/SKILL.md.bash"
+    elif [[ -f "$skill_dir/SKILL.md" ]]; then
+      src_skill_md="$skill_dir/SKILL.md"
+    else
+      continue
+    fi
+
+    local dst_dir="$skills_dst/$skill_name"
+    local dst_skill_md="$dst_dir/SKILL.md"
+    mkdir -p "$dst_dir"
+    cp -f "$src_skill_md" "$dst_skill_md"
+    echo "  Updated skill: $skill_name"
   done
 
   # Shared docs live at skills/docs but are not a "skill directory". Install them as well.
@@ -620,13 +634,26 @@ install_codex_skills() {
   fi
 
   mkdir -p "$skills_dst"
+  echo "Installing Codex skills (bash SKILL.md templates)..."
   for skill_dir in "$skills_src"/*/; do
     [[ -d "$skill_dir" ]] || continue
     local skill_name
     skill_name=$(basename "$skill_dir")
-    rm -rf "$skills_dst/$skill_name"
-    cp -r "$skill_dir" "$skills_dst/$skill_name"
-    echo "  Installed Codex skill: $skill_name"
+
+    local src_skill_md=""
+    if [[ -f "$skill_dir/SKILL.md.bash" ]]; then
+      src_skill_md="$skill_dir/SKILL.md.bash"
+    elif [[ -f "$skill_dir/SKILL.md" ]]; then
+      src_skill_md="$skill_dir/SKILL.md"
+    else
+      continue
+    fi
+
+    local dst_dir="$skills_dst/$skill_name"
+    local dst_skill_md="$dst_dir/SKILL.md"
+    mkdir -p "$dst_dir"
+    cp -f "$src_skill_md" "$dst_skill_md"
+    echo "  Updated Codex skill: $skill_name"
   done
   echo "Updated Codex skills directory: $skills_dst"
 }
@@ -919,6 +946,15 @@ install_tmux_config() {
     cp "$ccb_border_script" "$border_install_path"
     chmod +x "$border_install_path"
     echo "Installed: $border_install_path"
+  fi
+
+  # Install ccb-git.sh script (cached git status for tmux status line)
+  local ccb_git_script="$REPO_ROOT/config/ccb-git.sh"
+  local git_install_path="$BIN_DIR/ccb-git.sh"
+  if [[ -f "$ccb_git_script" ]]; then
+    cp "$ccb_git_script" "$git_install_path"
+    chmod +x "$git_install_path"
+    echo "Installed: $git_install_path"
   fi
 
   # Install tmux UI toggle scripts (enable/disable CCB theming per-session)
