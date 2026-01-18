@@ -1,6 +1,6 @@
 <div align="center">
 
-# Claude Code Bridge (ccb) v4.1.2
+# Claude Code Bridge (ccb) v4.1.3
 
 **基于终端分屏的 Claude & Codex & Gemini 丝滑协作工具**
 
@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Every_Model_Controllable-CF1322?style=for-the-badge" alt="Every Model Controllable">
 </p>
 
-[![Version](https://img.shields.io/badge/version-4.1.2-orange.svg)]()
+[![Version](https://img.shields.io/badge/version-4.1.3-orange.svg)]()
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)]()
 
 [English](README.md) | **中文**
@@ -436,6 +436,11 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zprofile
 
 <details>
 <summary><b>更新历史</b></summary>
+
+### v4.1.3
+- **Codex 配置修复**: 自动迁移过期的 `sandbox_mode = "full-auto"` 为 `"danger-full-access"`，修复 Codex 无法启动的问题
+- **稳定性**: 修复了快速退出的命令可能在设置 `remain-on-exit` 之前关闭 pane 的竞态条件
+- **Tmux**: 更稳健的 pane 检测机制 (优先使用稳定的 `$TMUX_PANE` 环境变量)，并增强了分屏目标失效时的回退处理
 
 ### v4.1.2
 - **性能优化**: 为 tmux 状态栏 (git 分支 & ccb 状态) 增加缓存，大幅降低系统负载

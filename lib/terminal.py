@@ -261,6 +261,20 @@ class TmuxBackend(TerminalBackend):
         v = (value or "").strip()
         return v.startswith("%")
 
+    def pane_exists(self, pane_id: str) -> bool:
+        """
+        Return True if the tmux pane target exists.
+
+        A pane can exist even if its process has exited (`#{pane_dead} == 1`).
+        """
+        if not self._looks_like_pane_id(pane_id):
+            return False
+        try:
+            cp = self._tmux_run(["display-message", "-p", "-t", pane_id, "#{pane_id}"], capture=True, timeout=0.5)
+            return cp.returncode == 0 and (cp.stdout or "").strip().startswith("%")
+        except Exception:
+            return False
+
     @staticmethod
     def _looks_like_tmux_target(value: str) -> bool:
         v = (value or "").strip()
@@ -273,24 +287,21 @@ class TmuxBackend(TerminalBackend):
         Return current tmux pane id in `%xx` format.
 
         Notes:
-        - `$TMUX_PANE` in the shell environment can become stale in some tmux workflows
-          (e.g. when panes are moved/replaced). Prefer asking tmux for the current pane id.
-        - In detached sessions (no client attached), `display-message` may fail; fall back to
-          `$TMUX_PANE` when it points to a live pane.
+        - Prefer `$TMUX_PANE` because it refers to the pane where this process runs; it stays
+          stable even if splits change the client's focused pane.
+        - `$TMUX_PANE` can become stale if that pane was killed/replaced; fall back to querying tmux.
         """
-        # Prefer querying the currently attached client for the active pane id.
+        env_pane = (os.environ.get("TMUX_PANE") or "").strip()
+        if self._looks_like_pane_id(env_pane) and self.pane_exists(env_pane):
+            return env_pane
+
         try:
             cp = self._tmux_run(["display-message", "-p", "#{pane_id}"], capture=True, timeout=0.5)
             out = (cp.stdout or "").strip()
-            if self._looks_like_pane_id(out) and self.is_pane_alive(out):
+            if self._looks_like_pane_id(out) and self.pane_exists(out):
                 return out
         except Exception:
             pass
-
-        # Fallback: use the environment variable if it points to a live pane.
-        env_pane = (os.environ.get("TMUX_PANE") or "").strip()
-        if self._looks_like_pane_id(env_pane) and self.is_pane_alive(env_pane):
-            return env_pane
 
         raise RuntimeError("tmux current pane id not available")
 
@@ -314,8 +325,9 @@ class TmuxBackend(TerminalBackend):
         except Exception:
             pass
 
-        if self._looks_like_pane_id(parent_pane_id) and not self.is_pane_alive(parent_pane_id):
-            raise RuntimeError(f"Cannot split: pane {parent_pane_id} does not exist or is dead")
+        # Allow splitting a "dead" pane (remain-on-exit); only fail if the pane target doesn't exist.
+        if self._looks_like_pane_id(parent_pane_id) and not self.pane_exists(parent_pane_id):
+            raise RuntimeError(f"Cannot split: pane {parent_pane_id} does not exist")
 
         size_cp = self._tmux_run(
             ["display-message", "-p", "-t", parent_pane_id, "#{pane_width}x#{pane_height}"],
@@ -564,6 +576,10 @@ class TmuxBackend(TerminalBackend):
 
         full_argv = [shell, *flags, cmd_body]
         full = " ".join(shlex.quote(a) for a in full_argv)
+
+        # Prevent a race where a fast-exiting command closes the pane before we can set remain-on-exit.
+        if remain_on_exit:
+            self._tmux_run(["set-option", "-p", "-t", pane_id, "remain-on-exit", "on"], check=False)
 
         tmux_args = ["respawn-pane", "-k", "-t", pane_id]
         if start_dir:
@@ -902,12 +918,85 @@ class WeztermBackend(TerminalBackend):
 _backend_cache: Optional[TerminalBackend] = None
 
 
+def _current_tty() -> str | None:
+    for fd in (0, 1, 2):
+        try:
+            return os.ttyname(fd)
+        except Exception:
+            continue
+    return None
+
+
+def _inside_tmux() -> bool:
+    if not (os.environ.get("TMUX") or os.environ.get("TMUX_PANE")):
+        return False
+    if not shutil.which("tmux"):
+        return False
+
+    tty = _current_tty()
+    pane = (os.environ.get("TMUX_PANE") or "").strip()
+
+    if pane:
+        try:
+            cp = _run(
+                ["tmux", "display-message", "-p", "-t", pane, "#{pane_tty}"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=0.5,
+            )
+            pane_tty = (cp.stdout or "").strip()
+            if cp.returncode == 0 and tty and pane_tty == tty:
+                return True
+        except Exception:
+            pass
+
+    if tty:
+        try:
+            cp = _run(
+                ["tmux", "display-message", "-p", "#{client_tty}"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=0.5,
+            )
+            client_tty = (cp.stdout or "").strip()
+            if cp.returncode == 0 and client_tty == tty:
+                return True
+        except Exception:
+            pass
+
+    if not tty and pane:
+        try:
+            cp = _run(
+                ["tmux", "display-message", "-p", "-t", pane, "#{pane_id}"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=0.5,
+            )
+            pane_id = (cp.stdout or "").strip()
+            if cp.returncode == 0 and pane_id.startswith("%"):
+                return True
+        except Exception:
+            pass
+
+    return False
+
+
+def _inside_wezterm() -> bool:
+    return bool((os.environ.get("WEZTERM_PANE") or "").strip())
+
+
 def detect_terminal() -> Optional[str]:
     # Priority 1: detect *current* terminal session from env vars.
     # Check tmux first - it's the "inner" environment when running WezTerm with tmux.
-    if os.environ.get("TMUX") or os.environ.get("TMUX_PANE"):
+    if _inside_tmux():
         return "tmux"
-    if os.environ.get("WEZTERM_PANE"):
+    if _inside_wezterm():
         return "wezterm"
 
     return None
