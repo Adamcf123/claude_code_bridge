@@ -1184,6 +1184,25 @@ class AILauncher:
                         end_idx = i
                         break
 
+                desired_map = {
+                    "trust_level": 'trust_level = "trusted"',
+                    "approval_policy": 'approval_policy = "never"',
+                    "sandbox_mode": 'sandbox_mode = "danger-full-access"',
+                }
+                key_value_re = re.compile(r"^(\s*)(trust_level|approval_policy|sandbox_mode)\s*=")
+                for i, ln in enumerate(lines):
+                    match = key_value_re.match(ln)
+                    if not match:
+                        continue
+                    indent, key = match.group(1), match.group(2)
+                    newline = "\n" if ln.endswith("\n") else ""
+                    desired_line = f"{indent}{desired_map[key]}{newline}"
+                    if ln != desired_line:
+                        lines[i] = desired_line
+                        changed = True
+
+                section_text = "".join(lines)
+
                 missing = [ln for ln in desired if not _has_key(section_text, ln.split("=", 1)[0].strip())]
                 if not missing and begin_idx is None and end_idx is None:
                     # If the keys already exist (likely added previously), wrap them with markers (best-effort)
@@ -1201,7 +1220,7 @@ class AILauncher:
                     return "".join(lines), changed
 
                 if not missing:
-                    return section_text, False
+                    return section_text, changed
 
                 block_lines = [ccb_begin + "\n", *[m + "\n" for m in missing], ccb_end + "\n"]
 
