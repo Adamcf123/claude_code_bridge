@@ -543,9 +543,7 @@ Providers: ``codex``, ``gemini``, ``opencode``, ``droid``, ``claude``
   }
 
   $allowList = @(
-    "Bash(cask:*)", "Bash(cpend)", "Bash(cping)",
-    "Bash(gask:*)", "Bash(gpend)", "Bash(gping)",
-    "Bash(oask:*)", "Bash(opend)", "Bash(oping)"
+    "Bash(ask *)", "Bash(ping *)", "Bash(pend *)"
   )
 
   if (Test-Path $settingsJson) {

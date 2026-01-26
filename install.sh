@@ -953,15 +953,9 @@ install_settings_permissions() {
   mkdir -p "$HOME/.claude"
 
   local perms_to_add=(
-    'Bash(cask:*)'
-    'Bash(cpend)'
-    'Bash(cping)'
-    'Bash(gask:*)'
-    'Bash(gpend)'
-    'Bash(gping)'
-    'Bash(oask:*)'
-    'Bash(opend)'
-    'Bash(oping)'
+    'Bash(ask *)'
+    'Bash(ping *)'
+    'Bash(pend *)'
   )
 
   if [[ ! -f "$settings_file" ]]; then
@@ -969,15 +963,9 @@ install_settings_permissions() {
 {
 	  "permissions": {
 	    "allow": [
-	      "Bash(cask:*)",
-	      "Bash(cpend)",
-	      "Bash(cping)",
-	      "Bash(gask:*)",
-	      "Bash(gpend)",
-	      "Bash(gping)",
-	      "Bash(oask:*)",
-	      "Bash(opend)",
-	      "Bash(oping)"
+	      "Bash(ask *)",
+	      "Bash(ping *)",
+	      "Bash(pend *)"
 	    ],
     "deny": []
   }
@@ -1313,6 +1301,9 @@ uninstall_settings_permissions() {
   fi
 
   local perms_to_remove=(
+    'Bash(ask *)'
+    'Bash(ping *)'
+    'Bash(pend *)'
     'Bash(cask:*)'
     'Bash(cpend)'
     'Bash(cping)'
@@ -1341,6 +1332,9 @@ import sys
 
 path = '$settings_file'
 perms_to_remove = [
+    'Bash(ask *)',
+    'Bash(ping *)',
+    'Bash(pend *)',
     'Bash(cask:*)',
     'Bash(cpend)',
     'Bash(cping)',
